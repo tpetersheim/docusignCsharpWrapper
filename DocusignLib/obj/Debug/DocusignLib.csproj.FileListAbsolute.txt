@@ -12,3 +12,8 @@ E:\App\DocusignLib\bin\Debug\DocusignEntity.pdb
 E:\App\DocusignLib\obj\Debug\ResolveAssemblyReference.cache
 E:\App\DocusignLib\obj\Debug\DocusignLib.dll
 E:\App\DocusignLib\obj\Debug\DocusignLib.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\DocusignLib\bin\Debug\DocusignLib.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\DocusignLib\bin\Debug\DocusignLib.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\DocusignLib\obj\Debug\DocusignLib.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\DocusignLib\obj\Debug\DocusignLib.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\DocusignLib\obj\Debug\DocusignLib.csprojResolveAssemblyReference.cache

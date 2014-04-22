@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocusignLib", "DocusignLib\DocusignLib.csproj", "{FC3D571F-5F16-4436-B4E7-F1B8BDE2BCB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocusignLib", "DocusignLib.csproj", "{FC3D571F-5F16-4436-B4E7-F1B8BDE2BCB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

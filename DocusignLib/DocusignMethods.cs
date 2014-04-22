@@ -40,6 +40,41 @@ namespace DocusignLib
                 "</DocuSignCredentials>";
         }
 
+        private class LoginResponse
+        {
+            public string AccountId { get; set; }
+            public string BaseUrl { get; set; }
+        }
+
+        /// <summary>
+        /// Login and return a LoginResponse
+        /// </summary>
+        /// <returns></returns>
+        private LoginResponse Login()
+        {
+            var loginResponse = new LoginResponse();
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
+            request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
+            request.Accept = "application/xml";
+            request.Method = "GET";
+            HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+            StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            using (XmlReader reader = XmlReader.Create(new StringReader(responseText)))
+            {
+                while (reader.Read())
+                {	// Parse the xml response body
+                    if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "accountId"))
+                        loginResponse.AccountId = reader.ReadString();
+                    if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "baseUrl"))
+                        loginResponse.BaseUrl = reader.ReadString();
+                }
+            }
+
+            return loginResponse;
+        }
+
         /// <summary>
         /// RequestSignatureFromTemplate request signature using Template
         /// </summary>
@@ -47,39 +82,25 @@ namespace DocusignLib
         /// <returns></returns>
         public string RequestSignatureFromTemplate(envelopeDefinition requestData)
         {
-            string accountId = string.Empty;
-            string baseURL = string.Empty;
             errorMessage = string.Empty;
-            // 
-            // STEP 1 - Login
-            //
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-                request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
-                request.Accept = "application/xml";
-                request.Method = "GET";
-                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                string responseText = sr.ReadToEnd();
-                using (XmlReader reader = XmlReader.Create(new StringReader(responseText)))
-                {
-                    while (reader.Read())
-                    {	// Parse the xml response body
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "accountId"))
-                            accountId = reader.ReadString();
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "baseUrl"))
-                            baseURL = reader.ReadString();
-                    }
-                }
+                // 
+                // STEP 1 - Login
+                //
+
+                var loginResponse = Login();
 
 
-                requestData.accountId = accountId;
+                //
+                // STEP 2 - 
+                //
+
+                requestData.accountId = loginResponse.AccountId;
                 string requestBody = Helper.GetXMLFromObject(requestData);
 
-
                 // append "/envelopes" to baseURL and use in the request
-                request = (HttpWebRequest)WebRequest.Create(baseURL + "/envelopes");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(loginResponse.BaseUrl + "/envelopes");
                 request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
                 request.ContentType = "application/xml";
                 request.ContentLength = requestBody.Length;
@@ -91,10 +112,9 @@ namespace DocusignLib
                 dataStream.Write(body, 0, requestBody.Length);
                 dataStream.Close();
                 // read the response
-                webResponse = (HttpWebResponse)request.GetResponse();
-                sr.Close();
-                responseText = "";
-                sr = new StreamReader(webResponse.GetResponseStream());
+                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+                string responseText = "";
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
 
                 return responseText;
@@ -104,7 +124,7 @@ namespace DocusignLib
                 using (WebResponse response = e.Response)
                 {
                     HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
+                    //errorMessage = "Error code:: " + httpResponse.StatusCode;
                     using (Stream data = response.GetResponseStream())
                     {
                         string text = new StreamReader(data).ReadToEnd();
@@ -118,47 +138,30 @@ namespace DocusignLib
         /// <summary>
         /// RequestSignatureFromDocument request signature using Document
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="file"></param>
         /// <param name="requestData"></param>
         /// <returns></returns>
-        public string RequestSignatureFromDocument(string filePath, envelopeDefinition requestData)
+        public string RequestSignatureFromDocument(FileInfo file, envelopeDefinition requestData)
         {
-            string accountId = string.Empty;
-            string baseURL = string.Empty;
             errorMessage = string.Empty;
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-                request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
-                request.Accept = "application/xml";
-                request.Method = "GET";
-                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                string responseText = sr.ReadToEnd();
-                using (XmlReader reader = XmlReader.Create(new StringReader(responseText)))
-                {
-                    while (reader.Read())
-                    {	// Parse the xml response body
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "accountId"))
-                            accountId = reader.ReadString();
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "baseUrl"))
-                            baseURL = reader.ReadString();
-                    }
-                }
+                // 
+                // STEP 1 - Login
+                //
 
+                var loginResponse = Login();
                
 
                 //
                 // STEP 2 - Create an Envelope with one recipient and one tab and send
                 //
 
-                
-
                 string envDef = Helper.GetXMLFromObject(requestData);
 
 
                 // read contents of document into the request stream
-                FileStream fileStream = File.OpenRead(@"C:\Users\jay\Desktop\test_document.pdf");
+                FileStream fileStream = File.OpenRead(file.FullName);
 
                 // build the multipart request body
                 string requestBodyStart = "\r\n\r\n--BOUNDARY\r\n" +
@@ -167,13 +170,13 @@ namespace DocusignLib
                         "\r\n" +
                         envDef + "\r\n\r\n--BOUNDARY\r\n" + 	// our xml formatted envelopeDefinition
                         "Content-Type: application/pdf\r\n" +
-                        "Content-Disposition: file; filename=\"test_document.pdf\"; documentId=1\r\n" +
+                        "Content-Disposition: file; filename=\"" + file.Name + "\"; documentId=1\r\n" +
                         "\r\n";
 
                 string requestBodyEnd = "\r\n--BOUNDARY--\r\n\r\n";
 
                 // use baseURL value + "/envelopes" for url of this request
-                request = (HttpWebRequest)WebRequest.Create(baseURL + "/envelopes");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(loginResponse.BaseUrl + "/envelopes");
                 request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
                 request.ContentType = "multipart/form-data; boundary=BOUNDARY";
                 request.Accept = "application/xml";
@@ -196,10 +199,9 @@ namespace DocusignLib
                 dataStream.Write(bodyEnd, 0, requestBodyEnd.ToString().Length);
                 dataStream.Close();
                 // read the response
-                webResponse = (HttpWebResponse)request.GetResponse();
-                sr.Close();
-                responseText = "";
-                sr = new StreamReader(webResponse.GetResponseStream());
+                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+                string responseText = "";
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
 
                 return responseText;
@@ -209,7 +211,7 @@ namespace DocusignLib
                 using (WebResponse response = e.Response)
                 {
                     HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
+                    //errorMessage = "Error code:: " + httpResponse.StatusCode;
                     using (Stream data = response.GetResponseStream())
                     {
                         string text = new StreamReader(data).ReadToEnd();

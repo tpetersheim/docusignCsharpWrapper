@@ -16,3 +16,12 @@ E:\App\DocuSignApp\bin\DocusignLib.pdb
 E:\App\DocuSignApp\obj\Debug\ResolveAssemblyReference.cache
 E:\App\DocuSignApp\obj\Debug\DocuSignApp.dll
 E:\App\DocuSignApp\obj\Debug\DocuSignApp.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocuSignApp.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocuSignApp.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocusignEntity.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocusignLib.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocusignEntity.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\bin\DocusignLib.pdb
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\obj\Debug\DocuSignApp.csprojResolveAssemblyReference.cache
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\obj\Debug\DocuSignApp.dll
+C:\Users\travisp\GitForWindows\docusignCsharpWrapper\SampleApplication\DocuSignApp\obj\Debug\DocuSignApp.pdb

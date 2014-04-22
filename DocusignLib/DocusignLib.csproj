@@ -41,14 +41,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocusignMethods.cs" />
+    <Compile Include="Entities\CompanyTabs.cs" />
+    <Compile Include="Entities\CustomFields.cs" />
+    <Compile Include="Entities\DocDetail.cs" />
+    <Compile Include="Entities\Document.cs" />
+    <Compile Include="Entities\DocusignAuth.cs" />
+    <Compile Include="Entities\EmailTabs.cs" />
+    <Compile Include="Entities\envelopeDefinition.cs" />
+    <Compile Include="Entities\EnvelopeEvents.cs" />
+    <Compile Include="Entities\EventNotification.cs" />
+    <Compile Include="Entities\FullNameTabs.cs" />
+    <Compile Include="Entities\Helper.cs" />
+    <Compile Include="Entities\InitialHereTabs.cs" />
+    <Compile Include="Entities\ListCustomFields.cs" />
+    <Compile Include="Entities\OfflineAttrbutes.cs" />
+    <Compile Include="Entities\RecipientEvents.cs" />
+    <Compile Include="Entities\Recipients.cs" />
+    <Compile Include="Entities\SignatureInfo.cs" />
+    <Compile Include="Entities\signer.cs" />
+    <Compile Include="Entities\SignHere.cs" />
+    <Compile Include="Entities\SignHereTab.cs" />
+    <Compile Include="Entities\Tab.cs" />
+    <Compile Include="Entities\templateRole.cs" />
+    <Compile Include="Entities\TextCustomFields.cs" />
+    <Compile Include="Entities\TextTabs.cs" />
+    <Compile Include="Entities\TitleTabs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DocusignEntity\DocusignEntity.csproj">
-      <Project>{83036B85-F0AC-46BE-9C0F-6D9B3A7F783D}</Project>
-      <Name>DocusignEntity</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
