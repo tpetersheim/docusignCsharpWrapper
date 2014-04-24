@@ -842,6 +842,77 @@ namespace DocusignLib
             }
         }
 
+        /// <summary>
+        /// Create an envelopeDefinition of signatureStatus created with one document and one signer.
+        /// </summary>
+        /// <param name="emailSubject"></param>
+        /// <param name="documentName"></param>
+        /// <param name="emailAddress"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public envelopeDefinition CreateEnvelopeDraft(string emailSubject, string emailAddress, string name, string documentName)
+        {
+            var docDetail = new DocDetail()
+                {
+                    document = new Document()
+                    {
+                        documentId = "1",
+                        name = documentName
+                    }
+                };
+
+            //var tabs = new Tab()
+            //{
+            //    signHereTabs = new SignHereTab()
+            //    {
+            //        signHere = new SignHere()
+            //        {
+            //            documentId = "1",
+            //            pageNumber = "1",
+            //            xPosition = "100",
+            //            yPosition = "100"
+            //        }
+            //    }
+            //};
+            var signers = new List<signer>()
+            {
+                new signer()
+                {
+                    recipientId = "1",
+                    email = emailAddress,
+                    name = name,
+                    tabs = null
+                                
+                }
+            };
+
+            return CreateEnvelopeDefinition(emailSubject, signatureStatus.created, docDetail, signers);
+        }
+
+        /// <summary>
+        /// Helps piece together an Envelope Definition
+        /// </summary>
+        /// <param name="emailSubject"></param>
+        /// <param name="signatureStatus"></param>
+        /// <param name="docDetail"></param>
+        /// <param name="signers"></param>
+        /// <returns></returns>
+        public envelopeDefinition CreateEnvelopeDefinition(string emailSubject, signatureStatus signatureStatus, DocDetail docDetail, List<signer> signers)
+        {
+            var envelope = new envelopeDefinition();
+            new envelopeDefinition()
+            {
+                emailSubject = emailSubject,
+                status = signatureStatus,    // "sent" to send immediately, "created" to save as draft in your account
+                documents = docDetail,
+                recipients = new Recipients()
+                {
+                    signers = signers
+                }
+            };
+
+            return envelope;
+        }
 
         private Response handleWebException(WebException e)
         {
