@@ -66,6 +66,7 @@
     <Compile Include="Entities\TextCustomFields.cs" />
     <Compile Include="Entities\TextTabs.cs" />
     <Compile Include="Entities\TitleTabs.cs" />
+    <Compile Include="Entities\Response.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
