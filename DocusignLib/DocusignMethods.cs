@@ -41,12 +41,6 @@ namespace DocusignLib
                 "</DocuSignCredentials>";
         }
 
-        private class LoginResponse
-        {
-            public string AccountId { get; set; }
-            public string BaseUrl { get; set; }
-        }
-
         /// <summary>
         /// Login and return a LoginResponse
         /// </summary>
@@ -62,17 +56,20 @@ namespace DocusignLib
             HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
             StreamReader sr = new StreamReader(webResponse.GetResponseStream());
             string responseText = sr.ReadToEnd();
-            using (XmlReader reader = XmlReader.Create(new StringReader(responseText)))
-            {
-                while (reader.Read())
-                {	// Parse the xml response body
-                    if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "accountId"))
-                        loginResponse.AccountId = reader.ReadString();
-                    if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "baseUrl"))
-                        loginResponse.BaseUrl = reader.ReadString();
-                }
-            }
 
+            //Parse response xml to object
+            XDocument xDoc = XDocument.Parse(responseText);
+            loginResponse.AccountId = getXDocValue(xDoc, "accountId");
+            loginResponse.BaseUrl = getXDocValue(xDoc, "baseUrl");
+            loginResponse.Email = getXDocValue(xDoc, "email");
+            bool isDefault;
+            bool.TryParse(getXDocValue(xDoc, "isDefault"), out isDefault);
+            loginResponse.IsDefault = isDefault;
+            loginResponse.Name = getXDocValue(xDoc, "name");
+            loginResponse.SiteDescription = getXDocValue(xDoc, "siteDescription");
+            loginResponse.UserId = getXDocValue(xDoc, "userId");
+            loginResponse.UserName = getXDocValue(xDoc, "userName");
+    
             return loginResponse;
         }
 
@@ -118,11 +115,11 @@ namespace DocusignLib
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
 
-                return processResponse(responseText, webResponse.StatusCode.ToString());
+                return processSignatureResponse(responseText, webResponse.StatusCode.ToString());
             }
             catch (WebException e)
             {
-                return handleWebException(e);
+                return handleWebException<Response>(e);
             }
         }
 
@@ -199,11 +196,11 @@ namespace DocusignLib
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
 
-                return processResponse(responseText, webResponse.StatusCode.ToString());
+                return processSignatureResponse(responseText, webResponse.StatusCode.ToString());
             }
             catch (WebException e)
             {
-                return handleWebException(e);
+                return handleWebException<Response>(e);
             }
 
         }
@@ -247,17 +244,7 @@ namespace DocusignLib
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
             }
         }
 
@@ -322,17 +309,7 @@ namespace DocusignLib
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
             }
         }
 
@@ -396,17 +373,7 @@ namespace DocusignLib
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
             }
         }
 
@@ -558,14 +525,14 @@ namespace DocusignLib
                     }
                 }
 
-               
+
 
                 //
                 // STEP 2 - Create an Envelope with an Embedded Recipient
                 //
 
                 // Construct an outgoing XML request body
-                
+
 
                 envData.accountId = accountId;
                 string requestBody = Helper.GetXMLFromObject(envData);
@@ -597,7 +564,7 @@ namespace DocusignLib
                     }
                 }
 
-                
+
 
                 //
                 // STEP 3 - Get the Embedded Console Send View
@@ -629,22 +596,12 @@ namespace DocusignLib
                 sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
                 return responseText;
-                
-                
+
+
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
             }
         }
 
@@ -754,49 +711,24 @@ namespace DocusignLib
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
             }
         }
 
         /// <summary>
-        /// EmbeddedDocusignConsoleView provides a Embedded Console View
+        /// EmbeddedDocusignConsoleView provides ah Embedded Console View
         /// </summary>
         /// <returns></returns>
         public string EmbeddedDocusignConsoleView()
         {
-            string accountId = string.Empty;
-            string baseURL = string.Empty;
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-                request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
-                request.Accept = "application/xml";
-                request.Method = "GET";
-                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                string responseText = sr.ReadToEnd();
-                using (XmlReader reader = XmlReader.Create(new StringReader(responseText)))
-                {
-                    while (reader.Read())
-                    {	// Parse the xml response body
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "accountId"))
-                            accountId = reader.ReadString();
-                        if ((reader.NodeType == XmlNodeType.Element) && (reader.Name == "baseUrl"))
-                            baseURL = reader.ReadString();
-                    }
-                }
+                // 
+                // STEP 1 - Login
+                //
 
-                
+                var loginResponse = Login();
+
 
                 //
                 // STEP 2 - Launch the DocuSign Console in an authenticated view.
@@ -805,11 +737,11 @@ namespace DocusignLib
                 // Construct an outgoing XML request body
                 StringBuilder xml = new StringBuilder();
                 xml.Append("<consoleViewRequest xmlns=\"http://www.docusign.com/restapi\">");
-                xml.Append("<accountId>" + accountId + "</accountId>");
+                xml.Append("<accountId>" + loginResponse.AccountId + "</accountId>");
                 xml.Append("</consoleViewRequest>");
 
                 // append "/views/console" to baseUrl and use in the request
-                request = (HttpWebRequest)WebRequest.Create(baseURL + "/views/console");
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(loginResponse.BaseUrl + "/views/console");
                 request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
                 request.ContentType = "application/xml";
                 request.Accept = "application/xml";
@@ -821,24 +753,84 @@ namespace DocusignLib
                 dataStream.Write(body, 0, xml.ToString().Length);
                 dataStream.Close();
                 // read the response
-                webResponse = (HttpWebResponse)request.GetResponse();
-                sr = new StreamReader(webResponse.GetResponseStream());
-                responseText = sr.ReadToEnd();
+                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                string responseText = sr.ReadToEnd();
                 return responseText;
             }
             catch (WebException e)
             {
-                using (WebResponse response = e.Response)
-                {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    errorMessage = "Error code:: " + httpResponse.StatusCode;
-                    using (Stream data = response.GetResponseStream())
-                    {
-                        string text = new StreamReader(data).ReadToEnd();
-                        errorMessage += text;
-                    }
-                }
-                return errorMessage;
+                return handleWebException<string>(e);
+            }
+        }
+
+        /// <summary>
+        /// EmbeddedDocusignEnvelopeView provides an Embedded Envelope View of correct or sender
+        /// </summary>
+        /// <returns></returns>
+        public Response EmbeddedDocusignEnvelopeView(EmbeddedDocusignEnvelopeViews view, string envelopeId, string returnUrl = null)
+        {
+            try
+            {
+                // 
+                // STEP 1 - Login
+                //
+
+                var loginResponse = Login();
+
+
+                // 
+                // STEP 2 - 
+                //
+
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format("{0}/envelopes/{1}/views/{2}", loginResponse.BaseUrl, envelopeId, view.ToString()));
+                //request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
+                //request.ContentType = "application/xml";
+                //request.Accept = "application/xml";
+                //request.ContentLength = 0;
+                //request.Method = "POST";
+                //HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+                //StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                //string responseText = sr.ReadToEnd();
+
+                ////Parse response xml to object
+                //XDocument xDoc = XDocument.Parse(responseText);
+                //return new EnvelopeViewResponse() { Success = true, Url = getXDocValue(xDoc, "url") };
+
+
+                //
+                // STEP 2 - Launch the DocuSign Console in an authenticated view.
+                //
+
+                // Construct an outgoing XML request body
+                StringBuilder xml = new StringBuilder();
+                xml.Append("<returnUrlRequest xmlns=\"http://www.docusign.com/restapi\">");
+                xml.Append("<accountId>" + loginResponse.AccountId + "</accountId>");
+                xml.Append("<envelopeId>" + envelopeId + "</envelopeId>");
+                xml.Append("<returnUrl>" + "www.docusign.com" + "</returnUrl>");
+                xml.Append("</returnUrlRequest>");
+
+                // append "/envelopes/[envelopeId]/views/" to baseUrl and use in the request
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format("{0}/envelopes/{1}/views/{2}", loginResponse.BaseUrl, envelopeId, view.ToString()));
+                request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
+                request.ContentType = "application/xml";
+                request.Accept = "application/xml";
+                request.ContentLength = xml.ToString().Length;
+                request.Method = "POST";
+                // write the body of the request
+                byte[] body = System.Text.Encoding.UTF8.GetBytes(xml.ToString());
+                Stream dataStream = request.GetRequestStream();
+                dataStream.Write(body, 0, xml.ToString().Length);
+                dataStream.Close();
+                // read the response
+                HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                string responseText = sr.ReadToEnd();
+                return processEnvelopeViewResponse(responseText, webResponse.StatusCode.ToString());
+            }
+            catch (WebException e)
+            {
+                return handleWebException<Response>(e);
             }
         }
 
@@ -899,8 +891,7 @@ namespace DocusignLib
         /// <returns></returns>
         public envelopeDefinition CreateEnvelopeDefinition(string emailSubject, signatureStatus signatureStatus, DocDetail docDetail, List<signer> signers)
         {
-            var envelope = new envelopeDefinition();
-            new envelopeDefinition()
+            var envelope = new envelopeDefinition()
             {
                 emailSubject = emailSubject,
                 status = signatureStatus,    // "sent" to send immediately, "created" to save as draft in your account
@@ -914,7 +905,7 @@ namespace DocusignLib
             return envelope;
         }
 
-        private Response handleWebException(WebException e)
+        private T handleWebException<T>(WebException e)
         {
             string statusCode;
             using (WebResponse response = e.Response)
@@ -928,7 +919,46 @@ namespace DocusignLib
                     errorMessage += text;
                 }
             }
-            return processResponse(errorMessage, statusCode);
+            if (typeof(T) != typeof(string))
+                return (T)((object)processErrorResponse/*<T>*/(errorMessage, statusCode));
+            else// if (typeof(T) == typeof(string))
+                return (T)((object)errorMessage);
+            //else 
+            //    return default(T);
+        }
+
+        private Response processErrorResponse/*<T>*/(string xml, string webResponseStatusCode)
+        {
+            var response = new Response() { WebResponseStatusCode = webResponseStatusCode };
+
+            //Parse resulting xml
+            XDocument resultXDoc = XDocument.Parse(xml);
+            var namespaceName = resultXDoc.Root.Name.NamespaceName;
+
+            var errorDetailsXEl = resultXDoc.Descendants(XName.Get("errorDetails", namespaceName));
+            if (errorDetailsXEl.Any())
+            {
+                //This is error xml.  Parse error elements
+                response.Success = false;
+                response.ErrorMessage = getXDocValue(resultXDoc, "message", "There was an unknown error sending the PDF to DocuSign.");
+                response.ErrorCode = getXDocValue(resultXDoc, "errorCode");
+
+            }
+            return response;
+            //return (T)((object)response);
+        }
+
+        private EnvelopeViewResponse processEnvelopeViewResponse(string xml, string webResponseStatusCode)
+        {
+            var response = new EnvelopeViewResponse() { WebResponseStatusCode = webResponseStatusCode };
+
+            XDocument resultXDoc = XDocument.Parse(xml);
+            var namespaceName = resultXDoc.Root.Name.NamespaceName;
+            
+            response.Success = true;
+            response.Url = getXDocValue(resultXDoc, "url");
+
+            return response;
         }
 
         /// <summary>
@@ -937,43 +967,31 @@ namespace DocusignLib
         /// <param name="xml"></param>
         /// <param name="webResponseStatusCode"></param>
         /// <returns></returns>
-        private Response processResponse(string xml, string webResponseStatusCode)
+        private RequestSignatureResponse processSignatureResponse(string xml, string webResponseStatusCode)
         {
-            Response response = new Response() { WebResponseStatusCode = webResponseStatusCode };
+            var response = new RequestSignatureResponse() { WebResponseStatusCode = webResponseStatusCode };
 
             //Parse resulting xml
-            XDocument resultXEl = XDocument.Parse(xml);
-            var namespaceName = resultXEl.Root.Name.NamespaceName;
+            XDocument resultXDoc = XDocument.Parse(xml);
+            var namespaceName = resultXDoc.Root.Name.NamespaceName;
 
-            var errorDetailsXEl = resultXEl.Descendants(XName.Get("errorDetails", namespaceName));
-            if (errorDetailsXEl.Any())
-            {
-                //This is error xml.  Parse error elements
-                response.Success = false;
-                response.ErrorMessage = getXElVal(resultXEl, "message", "There was an unknown error sending the PDF to DocuSign.");
-                response.ErrorCode = getXElVal(resultXEl, "errorCode");
-
-            }
-            else
-            {
-                //This is success xml. Parse success elements
-                response.Success = true;
-                response.EnvelopeId = getXElVal(resultXEl, "envelopeId");
-                response.Status = stringToEnum<signatureStatus>(getXElVal(resultXEl, "status"));
-                DateTime statusDate;
-                DateTime.TryParse(getXElVal(resultXEl, "statusDateTime"), out statusDate);
-                response.StatusDateTime = statusDate;
-                response.Uri = getXElVal(resultXEl, "uri");
-            }
+            //This is success xml. Parse success elements
+            response.Success = true;
+            response.EnvelopeId = getXDocValue(resultXDoc, "envelopeId");
+            response.Status = stringToEnum<signatureStatus>(getXDocValue(resultXDoc, "status"));
+            DateTime statusDate;
+            DateTime.TryParse(getXDocValue(resultXDoc, "statusDateTime"), out statusDate);
+            response.StatusDateTime = statusDate;
+            response.Uri = getXDocValue(resultXDoc, "uri");
 
             return response;
         }
 
-        private string getXElVal(XDocument xEl, string elementName, string defaultValue = null)
+        private string getXDocValue(XDocument xDoc, string elementName, string defaultValue = null)
         {
             var elementValue = defaultValue;
 
-            var messageXEl = xEl.Descendants(XName.Get(elementName, xEl.Root.Name.NamespaceName));
+            var messageXEl = xDoc.Descendants(XName.Get(elementName, xDoc.Root.Name.NamespaceName));
             if (messageXEl.Any())
                 elementValue = messageXEl.First().Value;
 
@@ -986,5 +1004,11 @@ namespace DocusignLib
             return (T)Enum.Parse(typeof(T), enumString);
         }
 
+    }
+
+    public enum EmbeddedDocusignEnvelopeViews
+    {
+        correct,
+        sender,
     }
 }

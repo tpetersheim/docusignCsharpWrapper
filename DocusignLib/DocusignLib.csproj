@@ -54,6 +54,7 @@
     <Compile Include="Entities\Helper.cs" />
     <Compile Include="Entities\InitialHereTabs.cs" />
     <Compile Include="Entities\ListCustomFields.cs" />
+    <Compile Include="Entities\LoginResponse.cs" />
     <Compile Include="Entities\OfflineAttrbutes.cs" />
     <Compile Include="Entities\RecipientEvents.cs" />
     <Compile Include="Entities\Recipients.cs" />
