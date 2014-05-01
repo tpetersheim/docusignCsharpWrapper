@@ -60,6 +60,7 @@ namespace DocusignLib
             HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
             StreamReader sr = new StreamReader(webResponse.GetResponseStream());
             string responseText = sr.ReadToEnd();
+            logHandler.LogResponseLoggingInfo(webResponse, responseText);
 
             //Parse response xml to object
             XDocument xDoc = XDocument.Parse(responseText);
@@ -200,6 +201,7 @@ namespace DocusignLib
                 string responseText = "";
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 responseText = sr.ReadToEnd();
+                logHandler.LogResponseLoggingInfo(webResponse, responseText);
 
                 return processSignatureResponse(responseText, webResponse.StatusCode.ToString());
             }
@@ -813,6 +815,8 @@ namespace DocusignLib
                 HttpWebResponse webResponse = (HttpWebResponse)request.GetResponse();
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
                 string responseText = sr.ReadToEnd();
+                logHandler.LogResponseLoggingInfo(webResponse, responseText);
+
                 return processEnvelopeViewResponse(responseText, webResponse.StatusCode.ToString());
             }
             catch (WebException e)
@@ -903,6 +907,7 @@ namespace DocusignLib
                 using (Stream data = response.GetResponseStream())
                 {
                     string text = new StreamReader(data).ReadToEnd();
+                    logHandler.LogResponseLoggingInfo(httpResponse, text);
                     errorMessage += text;
                 }
             }

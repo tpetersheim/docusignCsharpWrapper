@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.IO;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace DocusignLib
 {
@@ -36,44 +37,39 @@ namespace DocusignLib
 
         public void LogRequestLoggingInfo(HttpWebRequest request, string requestAsString)
         {
-            //StreamReader sr = new StreamReader(request.GetRequestStream());
-            //string requestAsString = sr.ReadToEnd();
-
             string log = string.Format(
                 "RequestUri: {0}" + Environment.NewLine +
                 "Headers: \n{1}" + Environment.NewLine +
-                //"ContenType: {2}" + Environment.NewLine +
-                //"ContentLength: {3}" + Environment.NewLine +
-                //"Accept: {4}" + Environment.NewLine +
                 "Method: {2}" + Environment.NewLine +
                 "Body: {3}" + Environment.NewLine,
                 request.RequestUri.ToString(),
                 request.Headers.ToString(),
-                //request.ContentType,
-                //request.ContentLength, 
-                //request.Accept,
                 request.Method,
                 requestAsString);
 
             writeToFile(log);
         }
 
-        //private void LogResponseLoggingInfo(HttpWebResponse response)
-        //{
-        //    if (response.Content != null)
-        //    {
-        //        response.Content.ReadAsByteArrayAsync()
-        //            .ContinueWith(task =>
-        //            {
-        //                var responseMsg = Encoding.UTF8.GetString(task.Result);
-        //                // Log it somewhere
-        //            });
-        //    }
-        //}
+        public void LogResponseLoggingInfo(HttpWebResponse response, string responseAsString)
+        {
+            string log = string.Format(
+                "ResponseUri: {0}" + Environment.NewLine +
+                "Headers: \n{1}" + Environment.NewLine +
+                "Method: {2}" + Environment.NewLine +
+                "Body: {3}" + Environment.NewLine,
+                response.ResponseUri.ToString(),
+                response.Headers.ToString(),
+                response.Method,
+                responseAsString);
+
+            writeToFile(log);
+        }
 
 
         public void writeToFile(string data)
         {
+            data = stripPasswordFromXml(data);
+
             if (logFilePath != null)
             {
                 try
@@ -86,6 +82,11 @@ namespace DocusignLib
                 }
                 catch (Exception excep) { } //Ignore any errors
             }
+        }
+
+        private string stripPasswordFromXml(string data)
+        {
+            return (new Regex("<password>.*</password>", RegexOptions.IgnoreCase)).Replace(data, "<Password>[stripped out]</Password>");
         }
     }
 }
