@@ -24,6 +24,7 @@ namespace DocusignEntity
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 //Handle Exception Code
             }
             finally

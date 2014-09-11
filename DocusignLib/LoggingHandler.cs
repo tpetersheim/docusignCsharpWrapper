@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
-using System.Net.Http;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -35,7 +34,7 @@ namespace DocusignLib
         //    });
         //}
 
-        public void LogRequestLoggingInfo(HttpWebRequest request, string requestAsString)
+        public void LogRequestLoggingInfo(HttpWebRequest request, string requestBody)
         {
             string log = string.Format(
                 "RequestUri: {0}" + Environment.NewLine +
@@ -45,7 +44,7 @@ namespace DocusignLib
                 request.RequestUri.ToString(),
                 request.Headers.ToString(),
                 request.Method,
-                requestAsString);
+                requestBody);
 
             writeToFile(log);
         }
