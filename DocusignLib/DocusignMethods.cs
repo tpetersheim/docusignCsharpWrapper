@@ -76,7 +76,7 @@ namespace DocusignLib
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
-        public Response RequestSignatureFromTemplate(envelopeDefinition requestData)
+        public Response RequestSignatureFromEnvelope(envelopeDefinition requestData)
         {
             errorMessage = string.Empty;
             try
@@ -405,7 +405,7 @@ namespace DocusignLib
         /// <param name="envData"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
-        public string EmbedSigningUX(envelopeDefinition envData,string returnUrl)
+        public Response EmbedSigningUX(envelopeDefinition envData,string returnUrl)
         {
             string envelopeId = string.Empty;
             string uri = string.Empty;
@@ -454,11 +454,13 @@ namespace DocusignLib
                 // read the response
                 response = getResponseBody(request);
 
-                return response;
+                return new RequestSignatureResponse() {
+                      EnvelopeId = response  
+                };
             }
             catch (WebException e)
             {
-                return handleWebException<string>(e);
+                return handleWebException<Response>(e);
             }
         }
 
@@ -515,8 +517,11 @@ namespace DocusignLib
         /// EmbeddedDocusignEnvelopeView provides an Embedded Envelope View of correct or sender
         /// </summary>
         /// <returns></returns>
-        public Response EmbeddedEnvelopeView(DocusignMethods.EmbeddedEnvelopeViews view, string envelopeId, string clientUserId = null, string returnUrl = null, string email = null, string username = null)
+        public Response EmbeddedEnvelopeView(DocusignMethods.EmbeddedEnvelopeViews view, string envelopeId)
         {
+            if (!(view == EmbeddedEnvelopeViews.sender || view == EmbeddedEnvelopeViews.correct))
+                throw new InvalidOperationException("EmbeddedEnvelopeView must be of type sender or correct.");
+
             try
             {
                 // 
@@ -529,21 +534,59 @@ namespace DocusignLib
                 // STEP 2 - 
                 //
                 // Construct an outgoing XML request body
-                var bodyObj = new
-                {
-                    authenticationMethod = "email",
-                    returnUrl = "www.docusign.com",
-
-                };
-                var temp = bodyObj.ToXml().ToString();
                 StringBuilder body = new StringBuilder();
-                var requestElName = view == EmbeddedEnvelopeViews.recipient ? "recipientViewRequest" : "returnUrlRequest";
-                body.Append("<" + requestElName + " xmlns=\"http://www.docusign.com/restapi\">");
+                body.Append("<returnUrlRequest xmlns=\"http://www.docusign.com/restapi\">");
                 body.Append("<returnUrl>" + "www.docusign.com" + "</returnUrl>");
-                body.Append("</" + requestElName + ">");
+                body.Append("</returnUrlRequest>");
 
                 // append "/envelopes/[envelopeId]/views/" to baseUrl and use in the request
                 string url = string.Format("{0}/envelopes/{1}/views/{2}", loginResponse.BaseUrl, envelopeId, view.ToString());
+                HttpWebRequest request = initializeRequest(url, restVerb.POST, body.ToString());
+
+                // read the response
+                string responseStatusCode;
+                string response = getResponseBody(request, out responseStatusCode);
+
+                return processEnvelopeViewResponse(response, responseStatusCode);
+            }
+            catch (WebException e)
+            {
+                return handleWebException<Response>(e);
+            }
+        }
+
+        /// <summary>
+        /// EmbeddedDocusignEnvelopeView provides an Embedded Envelope View of recipient
+        /// </summary>
+        /// <returns></returns>
+        public Response EmbeddedEnvelopeView(DocusignMethods.EmbeddedEnvelopeViews view, string envelopeId, string clientUserId, string email, string username, string authenticationMethod = "Email", string returnUrl = "http://demo.docusign.com")
+        {
+            if (view != EmbeddedEnvelopeViews.recipient)
+                throw new InvalidOperationException("EmbeddedEnvelopeView must be of type sender or correct.");
+
+            try
+            {
+                // 
+                // STEP 1 - Login
+                //
+                var loginResponse = Login();
+
+
+                // 
+                // STEP 2 - 
+                //
+                // Construct an outgoing XML request body
+                StringBuilder body = new StringBuilder();
+                body.Append("<recipientViewRequest xmlns=\"http://www.docusign.com/restapi\">");
+                body.Append("<authenticationMethod>" + authenticationMethod + "</authenticationMethod>");
+                body.Append("<email>" + email + "</email>");
+                body.Append("<returnUrl>" + returnUrl + "</returnUrl>");
+                body.Append("<clientUserId>" + clientUserId + "</clientUserId>");
+                body.Append("<userName>" + username + "</userName>");
+                body.Append("</recipientViewRequest>");
+
+                // append "/envelopes/[envelopeId]/views/" to baseUrl and use in the request
+                string url = string.Format("{0}/envelopes/{1}/views/{2}", loginResponse.BaseUrl, envelopeId, EmbeddedEnvelopeViews.recipient);
                 HttpWebRequest request = initializeRequest(url, restVerb.POST, body.ToString());
 
                 // read the response
@@ -710,7 +753,7 @@ namespace DocusignLib
             return envelope;
         }
 
-        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId)
+        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId, List<textTabs> tabs = null)
         {
             var envelope = new envelopeDefinition()
             {
@@ -724,13 +767,19 @@ namespace DocusignLib
                         roleName = "RoleOne",
                         name = roleOneName,
                         email = roleOneEmail,
-                        clientUserId = roleOneClientUserId //This property set determines if template is embedded
+                        clientUserId = roleOneClientUserId, //This property set determines if template is embedded
+                        tabs = tabs
                     }
                 }
 
             };
 
             return envelope;
+        }
+
+        public List<textTabs> DictionaryToTextTabs(Dictionary<string, string> dictionary)
+        {
+            return dictionary.Select(d => new textTabs() { tabLabel = d.Key, value = d.Value }).ToList();
         }
 
         private T handleWebException<T>(WebException e)

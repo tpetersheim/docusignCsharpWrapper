@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocusignMethods.cs" />
-    <Compile Include="DynamicHelper.cs" />
     <Compile Include="Entities\CompanyTabs.cs" />
     <Compile Include="Entities\CustomFields.cs" />
     <Compile Include="Entities\DocDetail.cs" />

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DocusignEntity
 {
-    public class TextTabs
+    public class textTabs
     {
         public string width { get; set; }
         public string tabLabel { get; set; }
