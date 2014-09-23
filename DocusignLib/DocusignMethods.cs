@@ -444,7 +444,7 @@ namespace DocusignLib
                         "<email>" + Username + "</email>" +	 	// NOTE: Use different email address if username provided in non-email format!
                         "<returnUrl>" + returnUrl + "</returnUrl>" +  // username can be in email format or an actual ID string
                         "<clientUserId>1</clientUserId>" +
-                        "<userName>Name</userName>" +
+                        "<userName>Travis Petersheim</userName>" +
                         "</recipientViewRequest>";
 
                 // append uri + "/views/recipient" to baseUrl and use in the request
@@ -626,7 +626,7 @@ namespace DocusignLib
                     "<Username>" + Username + "</Username>" +
                     "<Password>" + Password + "</Password>" +
                     "<IntegratorKey>" + IntegratorKey + "</IntegratorKey>" +
-                    "</DocuSignCredentials>";
+                "</DocuSignCredentials>";
             request.Headers.Add("X-DocuSign-Authentication", authenticateStr);
             request.Accept = "application/xml";
             request.ContentType = "application/xml";
@@ -753,7 +753,7 @@ namespace DocusignLib
             return envelope;
         }
 
-        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId, List<textTabs> tabs = null)
+        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId, textTabsList tabs = null)
         {
             var envelope = new envelopeDefinition()
             {
@@ -777,9 +777,13 @@ namespace DocusignLib
             return envelope;
         }
 
-        public List<textTabs> DictionaryToTextTabs(Dictionary<string, string> dictionary)
+        public textTabsList DictionaryToTextTabs(Dictionary<string, string> dictionary)
         {
-            return dictionary.Select(d => new textTabs() { tabLabel = d.Key, value = d.Value }).ToList();
+            return new textTabsList() { textTabs = dictionary.Select(d => 
+                new text() { 
+                    tabLabel = d.Key, value = d.Value 
+                }).ToList() 
+            };
         }
 
         private T handleWebException<T>(WebException e)
