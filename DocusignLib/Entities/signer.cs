@@ -18,7 +18,7 @@ namespace DocusignEntity
         public Tab tabs { get; set; }
         public string routingOrder { get; set; }
         public string clientUserId { get; set; }
-
+        public from_to_status status { get; set; }
     }
 
     public enum DeliveryMethod

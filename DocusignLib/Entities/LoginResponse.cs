@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DocusignEntity
 {
-    public class LoginResponse
+    public class loginInformation
     {
         public string AccountId { get; set; }
         public string BaseUrl { get; set; }

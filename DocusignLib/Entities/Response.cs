@@ -15,15 +15,15 @@ namespace DocusignEntity
         public string ErrorMessage { get; set; }
     }
 
-    public class RequestSignatureResponse : Response
+    public class envelopeSummary : Response
     {
         public string EnvelopeId { get; set; }
-        public signatureStatus Status { get; set; }
+        public from_to_status Status { get; set; }
         public DateTime StatusDateTime { get; set; }
         public string Uri { get; set; }
     }
 
-    public class EnvelopeViewResponse : Response
+    public class viewUrl : Response
     {
         public string Url { get; set; }
     }
