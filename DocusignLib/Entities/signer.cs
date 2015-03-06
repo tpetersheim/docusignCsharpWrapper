@@ -15,7 +15,7 @@ namespace DocusignEntity
         //public DateTime deliveredDateTime { get; set; }
         //public DeliveryMethod deliveryMethod { get; set; }
         //public SignatureInfo signatureInfo { get; set; }
-        public Tab tabs { get; set; }
+        public Tabs tabs { get; set; }
         public string routingOrder { get; set; }
         public string clientUserId { get; set; }
         public from_to_status status { get; set; }

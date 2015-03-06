@@ -5,11 +5,10 @@ using System.Text;
 
 namespace DocusignEntity
 {
-    public class text
+    class checkbox
     {
-        public string width { get; set; }
         public string tabLabel { get; set; }
-        public string value { get; set; }
+        public bool selected { get; set; }
         public string name { get; set; }
         public string pageNumber { get; set; }
         public string documentId { get; set; }

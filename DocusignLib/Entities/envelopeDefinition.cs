@@ -18,5 +18,7 @@ namespace DocusignEntity
         public DocDetail documents { get; set; }
         public Recipients recipients { get; set; }
         public bool messageLock { get; set; }
+        public bool autoNavigation { get; set; }
+        public List<compositeTemplate> compositeTemplates { get; set; }
     }
 }

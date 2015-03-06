@@ -43,7 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocusignMethods.cs" />
+    <Compile Include="Entities\CheckboxTabs.cs" />
     <Compile Include="Entities\CompanyTabs.cs" />
+    <Compile Include="Entities\compositeTemplate.cs" />
     <Compile Include="Entities\CustomFields.cs" />
     <Compile Include="Entities\DocDetail.cs" />
     <Compile Include="Entities\Document.cs" />
@@ -55,11 +57,13 @@
     <Compile Include="Entities\FullNameTabs.cs" />
     <Compile Include="Entities\Helper.cs" />
     <Compile Include="Entities\InitialHereTabs.cs" />
+    <Compile Include="Entities\inlineTemplate.cs" />
     <Compile Include="Entities\ListCustomFields.cs" />
     <Compile Include="Entities\LoginResponse.cs" />
     <Compile Include="Entities\OfflineAttrbutes.cs" />
     <Compile Include="Entities\RecipientEvents.cs" />
     <Compile Include="Entities\Recipients.cs" />
+    <Compile Include="Entities\serverTemplate.cs" />
     <Compile Include="Entities\SignatureInfo.cs" />
     <Compile Include="Entities\signer.cs" />
     <Compile Include="Entities\SignHere.cs" />

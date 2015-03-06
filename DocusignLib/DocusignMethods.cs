@@ -733,7 +733,7 @@ namespace DocusignLib
             return envelope;
         }
 
-        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId, textTabsList tabs = null)
+        public envelopeDefinition CreateEmbeddedTemplateEnvelopeDraft(string roleOneName, string emailSubject, string roleOneEmail, string roleOneClientUserId, string templateId, Tabs tabs = null)
         {
             var envelope = new envelopeDefinition()
             {
@@ -757,9 +757,9 @@ namespace DocusignLib
             return envelope;
         }
 
-        public textTabsList DictionaryToTextTabsList(Dictionary<string, string> dictionary)
+        public Tabs DictionaryToTextTabsList(Dictionary<string, string> dictionary)
         {
-            return new textTabsList() { textTabs = dictionary.Select(d => 
+            return new Tabs() { textTabs = dictionary.Select(d => 
                 new text() { 
                     tabLabel = d.Key, value = d.Value 
                 }).ToList() 
